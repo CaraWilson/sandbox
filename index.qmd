@@ -1,5 +1,6 @@
 ---
 title: "Cara's Sandbox"
+format: html
 ---
 
 [Course slides](slides/index.qmd)  
