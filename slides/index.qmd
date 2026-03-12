@@ -1,0 +1,67 @@
+---
+title: "Expedition Data: Auto-Gallery"
+format: 
+  html:
+    page-layout: full
+    self-contained: true
+echo: false
+# We tell Quarto to look for all PNGs and store them in a variable called 'my_images'
+listing:
+  id: image-list
+  contents: "*.png"
+---
+
+```{ojs}
+// 1. Grab the filenames that Quarto found in the folder
+// Quarto's 'listing' puts data into an array we can access
+raw_data = quatrometa.listing["image-list"]
+
+// 2. Clean the data for the slider
+data = raw_data.map(d => ({
+  path: d.path,
+  title: d.path.replace(".png", "").replace(/_/g, " ").toUpperCase()
+}))
+
+// 3. Slider Logic
+mutable index = 0
+
+// 4. Auto-Play Timer
+timer = {
+  while (true) {
+    if (autoplay) {
+      mutable index = (mutable index + 1) % data.length;
+    }
+    yield Promises.delay(3000); 
+  }
+}
+
+// 5. UI Controls
+viewof autoplay = Inputs.toggle({label: "Auto-Play Slideshow", value: false})
+
+viewof controls = html`
+  <div style="display: flex; gap: 15px; justify-content: center; margin-bottom: 25px;">
+    <button style="padding: 10px 20px; cursor: pointer;" 
+            on-click=${() => mutable index = (mutable index - 1 + data.length) % data.length}>
+      ← Previous
+    </button>
+    <button style="padding: 10px 20px; cursor: pointer;" 
+            on-click=${() => mutable index = (mutable index + 1) % data.length}>
+      Next Image →
+    </button>
+  </div>
+`
+
+// 6. The Display
+html`
+  <div style="text-align: center; border: 2px solid #002f5d; padding: 30px; border-radius: 15px; background: #fdfdfd; max-width: 900px; margin: auto; font-family: sans-serif;">
+    <div style="height: 550px; display: flex; align-items: center; justify-content: center; background: #fff; border: 1px solid #eee; border-radius: 10px; overflow: hidden;">
+      <img src="${data[index].path}" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+    </div>
+    <div style="margin-top: 25px;">
+      <div style="display: inline-block; background: ${autoplay ? '#28a745' : '#002f5d'}; color: white; padding: 6px 18px; border-radius: 50px; font-size: 0.85em; font-weight: bold;">
+        ${autoplay ? '● AUTO-PLAY' : 'MANUAL'} — ${index + 1} / ${data.length}
+      </div>
+      <h2 style="color: #002f5d; margin-top: 20px;">${data[index].title}</h2>
+    </div>
+  </div>
+`
