@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Slides </title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f0f2f5; padding: 20px; color: #1c1e21; }
+        h1 { text-align: center; color: #003366; }
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: transform 0.2s;
+        }
+        .card:hover { transform: translateY(-5px); }
+        img { width: 100%; height: auto; display: block; border-bottom: 1px solid #eee; }
+        .caption { padding: 15px; font-size: 0.95rem; font-weight: 600; text-align: center; text-transform: capitalize; }
+        #loading { text-align: center; font-style: italic; color: #666; }
+    </style>
+</head>
+<body>
+
+    <h1>NOAA Ship Underway Data Plots</h1>
+    <div id="loading">Scanning repository for plots...</div>
+    <div class="gallery" id="image-gallery"></div>
+
+    <script>
+        // --- CONFIGURATION ---
+        const repoOwner = 'CaraWilson'; // Change this
+        const repoName = 'sandbox/slides';       // Change this
+        // ---------------------
+
+        async function loadImages() {
+            const gallery = document.getElementById('image-gallery');
+            const loader = document.getElementById('loading');
+            
+            try {
+                // Fetch the list of files from GitHub's API
+                const response = await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/contents/`);
+                const files = await response.json();
+
+                // Filter for PNG files
+                const pngFiles = files.filter(file => file.name.toLowerCase().endsWith('.png'));
+
+                if (pngFiles.length === 0) {
+                    loader.innerText = "No PNG images found in this repository.";
+                    return;
+                }
+
+                loader.style.display = 'none';
+
+                pngFiles.forEach(file => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+
+                    // Use the "download_url" from GitHub to get the raw image
+                    const cleanName = file.name.replace('.png', '').replace(/_/g, ' ');
+                    
+                    card.innerHTML = `
+                        <a href="${file.download_url}" target="_blank">
+                            <img src="${file.download_url}" alt="${cleanName}">
+                        </a>
+                        <div class="caption">${cleanName}</div>
+                    `;
+                    gallery.appendChild(card);
+                });
+
+            } catch (error) {
+                console.error("Error loading images:", error);
+                loader.innerText = "Error loading images. Check your Repo Owner and Repo Name settings.";
+            }
+        }
+
+        loadImages();
+    </script>
+</body>
+</html>
